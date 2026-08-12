@@ -3,59 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台股主動式 ETF 籌碼追蹤</title>
-    <!-- 引入 Tailwind CSS 漂亮樣式 -->
-    <script src="https://jsdelivr.net"></script>
+    <title>主動式 ETF 持股籌碼追蹤</title>
+    <!-- 引入與目標網站相似的 Tailwind CSS 樣式庫，方便排版 -->
+    <script src="https://tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-6">
-    <div class="max-w-4xl mx-auto">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-blue-400 mb-2">📊 主動式 ETF 持股籌碼追蹤</h1>
-            <p class="text-gray-400 text-sm">資料更新時間：<span id="update-time">讀取中...</span></p>
+<body class="bg-gray-50 text-gray-800 flex min-h-screen">
+
+    <!-- 1. 左側固定導覽列 (Sidebar) -->
+    <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex shrink-0">
+        <div>
+            <!-- 網站標題與 Logo -->
+            <div class="flex items-center gap-2 mb-8">
+                <span class="text-2xl">📊</span>
+                <h1 class="font-bold text-lg tracking-wider">籌碼追蹤工具</h1>
+            </div>
+            
+            <!-- 導覽功能選單 -->
+            <nav class="space-y-2">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">TAIWAN ETF DATA</p>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium text-sm">
+                    🔍 <span>ETF 探索</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                    📈 <span>市場籌碼</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                    ⚙️ <span>分析工具</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                    🧮 <span>退休計算機</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- 2. 右側主要內容區塊 (Main Content) -->
+    <main class="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full">
+        <!-- 頂部標題與時間 -->
+        <header class="mb-6">
+            <h2 class="text-2xl font-bold flex items-center gap-2">
+                <span>📊</span> 主動式 ETF 持股籌碼追蹤
+            </h2>
+            <p class="text-sm text-gray-500 mt-2">資料更新時間：2026-08-12 16:30 (範例資料)</p>
         </header>
 
-        <div class="bg-gray-800 rounded-xl p-6 shadow-xl border border-gray-700">
-            <h2 class="text-xl font-semibold mb-4 text-gray-200">當日主動 ETF 個股買賣超排行</h2>
+        <!-- 警示/提示文字區塊 -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-sm text-amber-800 flex items-start gap-2">
+            <span>⚠️</span>
+            <p>目前網頁內為測試範例資料。未來你可以串接後端 Python 爬蟲，將數據自動寫入此表格內。</p>
+        </div>
+
+        <!-- 區塊標題：個股買賣超排行 -->
+        <section class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-bold text-lg text-gray-900">當日主動 ETF 個股買賣超排行</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">點擊股名可反查持有它的 ETF 項目</p>
+                </div>
+                
+                <!-- 篩選切換按鈕組 (三大合計 / 外資 / 投信) -->
+                <div class="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50 text-xs font-medium">
+                    <button class="px-3 py-1.5 bg-white text-gray-800 rounded-md shadow-sm">三大合計</button>
+                    <button class="px-3 py-1.5 text-gray-500 hover:text-gray-700">外資</button>
+                    <button class="px-3 py-1.5 text-gray-500 hover:text-gray-700">投信</button>
+                </div>
+            </div>
+
+            <!-- 數據表格 (與目標網站相同欄位) -->
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse text-sm">
                     <thead>
-                        <tr class="border-b border-gray-700 text-gray-400 text-sm">
-                            <th class="pb-3 font-medium">股票代號/名稱</th>
-                            <th class="pb-3 font-medium text-right">持股淨買賣 (估值)</th>
+                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-400 font-medium">
+                            <th class="py-3 px-5">股票代號/名稱</th>
+                            <th class="py-3 px-5 text-right">持股淨買賣 (估值)</th>
                         </tr>
                     </thead>
-                    <tbody id="data-table" class="divide-y divide-gray-700 text-sm">
-                        <tr><td colspan="2" class="py-4 text-center text-gray-500">資料加載中...</td></tr>
+                    <tbody class="divide-y divide-gray-100 font-medium">
+                        <!-- 測試資料列 1 -->
+                        <tr class="hover:bg-gray-50 transition cursor-pointer">
+                            <td class="py-4 px-5 text-blue-600 hover:underline">4958 臻鼎-KY</td>
+                            <td class="py-4 px-5 text-right text-emerald-600">+9.4 億</td>
+                        </tr>
+                        <!-- 測試資料列 2 -->
+                        <tr class="hover:bg-gray-50 transition cursor-pointer">
+                            <td class="py-4 px-5 text-blue-600 hover:underline">2330 台積電</td>
+                            <td class="py-4 px-5 text-right text-rose-600">-2.9 億</td>
+                        </tr>
+                        <!-- 測試資料列 3 -->
+                        <tr class="hover:bg-gray-50 transition cursor-pointer">
+                            <td class="py-4 px-5 text-blue-600 hover:underline">2408 南亞科</td>
+                            <td class="py-4 px-5 text-right text-emerald-600">+4.2 億</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
-    <script>
-        // 自動讀取同資料夾底下的 etf_data.json
-        fetch('./etf_data.json')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('update-time').innerText = data.update_time;
-                const tbody = document.getElementById('data-table');
-                tbody.innerHTML = '';
-                
-                data.rankings.forEach(item => {
-                    const row = document.createElement('tr');
-                    const isPositive = item.value >= 0;
-                    row.innerHTML = `
-                        <td class="py-3 font-semibold text-gray-300">${item.stock}</td>
-                        <td class="py-3 text-right font-mono ${isPositive ? 'text-red-400' : 'text-green-400'}">
-                            ${isPositive ? '+' : ''}${item.value.toLocaleString()} 元
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            })
-            .catch(err => {
-                document.getElementById('data-table').innerHTML = `<tr><td colspan="2" class="py-4 text-center text-red-400">暫無今日資料，等待下午自動爬蟲更新</td></tr>`;
-            });
-    </script>
 </body>
 </html>
