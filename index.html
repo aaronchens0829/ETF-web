@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台股主動式 ETF 籌碼追蹤</title>
+    <!-- 引入 Tailwind CSS 漂亮樣式 -->
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-blue-400 mb-2">📊 主動式 ETF 持股籌碼追蹤</h1>
+            <p class="text-gray-400 text-sm">資料更新時間：<span id="update-time">讀取中...</span></p>
+        </header>
+
+        <div class="bg-gray-800 rounded-xl p-6 shadow-xl border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">當日主動 ETF 個股買賣超排行</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-700 text-gray-400 text-sm">
+                            <th class="pb-3 font-medium">股票代號/名稱</th>
+                            <th class="pb-3 font-medium text-right">持股淨買賣 (估值)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table" class="divide-y divide-gray-700 text-sm">
+                        <tr><td colspan="2" class="py-4 text-center text-gray-500">資料加載中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 自動讀取同資料夾底下的 etf_data.json
+        fetch('./etf_data.json')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('update-time').innerText = data.update_time;
+                const tbody = document.getElementById('data-table');
+                tbody.innerHTML = '';
+                
+                data.rankings.forEach(item => {
+                    const row = document.createElement('tr');
+                    const isPositive = item.value >= 0;
+                    row.innerHTML = `
+                        <td class="py-3 font-semibold text-gray-300">${item.stock}</td>
+                        <td class="py-3 text-right font-mono ${isPositive ? 'text-red-400' : 'text-green-400'}">
+                            ${isPositive ? '+' : ''}${item.value.toLocaleString()} 元
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(err => {
+                document.getElementById('data-table').innerHTML = `<tr><td colspan="2" class="py-4 text-center text-red-400">暫無今日資料，等待下午自動爬蟲更新</td></tr>`;
+            });
+    </script>
+</body>
+</html>
