@@ -4,100 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>主動式 ETF 持股籌碼追蹤</title>
-    <!-- 引入與目標網站相似的 Tailwind CSS 樣式庫，方便排版 -->
-    <script src="https://tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 flex min-h-screen">
+    <style>
+        /* 網頁基礎與字體設定 */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: #f9fafb; color: #1f2937; display: flex; min-height: 100vh; }
+        
+        /* 左側固定選單排版 */
+        aside { width: 240px; bg: #ffffff; border-right: 1px solid #e5e7eb; padding: 24px; display: flex; flex-direction: column; background: #fff; flex-shrink: 0; }
+        .logo-area { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; font-weight: bold; font-size: 18px; }
+        .menu-title { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        nav { display: flex; flex-direction: column; gap: 8px; }
+        nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500; color: #4b5563; transition: 0.2s; }
+        nav a:hover { background-color: #f3f4f6; }
+        nav a.active { background-color: #eff6ff; color: #2563eb; }
 
-    <!-- 1. 左側固定導覽列 (Sidebar) -->
-    <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex shrink-0">
-        <div>
-            <!-- 網站標題與 Logo -->
-            <div class="flex items-center gap-2 mb-8">
-                <span class="text-2xl">📊</span>
-                <h1 class="font-bold text-lg tracking-wider">籌碼追蹤工具</h1>
-            </div>
-            
-            <!-- 導覽功能選單 -->
-            <nav class="space-y-2">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">TAIWAN ETF DATA</p>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium text-sm">
-                    🔍 <span>ETF 探索</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
-                    📈 <span>市場籌碼</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
-                    ⚙️ <span>分析工具</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
-                    🧮 <span>退休計算機</span>
-                </a>
-            </nav>
+        /* 右側主內容排版 */
+        main { flex: 1; padding: 40px; max-w: 1000px; margin: 0 auto; width: 100%; }
+        header { margin-bottom: 24px; }
+        header h2 { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .update-time { font-size: 14px; color: #6b7280; margin-top: 8px; }
+        
+        /* 警告/提示區塊 */
+        .alert-box { background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 16px; margin-bottom: 32px; font-size: 14px; color: #92400e; display: flex; gap: 8px; }
+
+        /* 表格大區塊卡片 */
+        .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { padding: 20px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .card-title { font-size: 18px; font-weight: 700; color: #111827; }
+        .card-subtitle { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+
+        /* 三大合計按鈕組 */
+        .btn-group { display: inline-flex; border: 1px solid #e5e7eb; border-radius: 8px; padding: 4px; background: #f9fafb; gap: 4px; }
+        .btn-group button { padding: 6px 12px; border: none; background: none; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; color: #6b7280; }
+        .btn-group button.active { background: #fff; color: #111827; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+        /* 數據表格設計 */
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background: #f9fafb; padding: 12px 20px; border-bottom: 1px solid #e5e7eb; color: #9ca3af; font-weight: 500; }
+        td { padding: 16px 20px; border-bottom: 1px solid #f3f4f6; font-weight: 500; }
+        tr:hover { background-color: #f9fafb; cursor: pointer; }
+        .stock-name { color: #2563eb; text-decoration: none; }
+        .stock-name:hover { text-decoration: underline; }
+        .text-right { text-align: right; }
+        .text-green { color: #10b981; }
+        .text-red { color: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 左側固定選單 -->
+    <aside>
+        <div class="logo-area">
+            <span>📊</span> 籌碼追蹤工具
         </div>
+        <div class="menu-title">TAIWAN ETF DATA</div>
+        <nav>
+            <a href="#" class="active">🔍 <span>ETF 探索</span></a>
+            <a href="#">📈 <span>市場籌碼</span></a>
+            <a href="#">⚙️ <span>分析工具</span></a>
+            <a href="#">🧮 <span>退休計算機</span></a>
+        </nav>
     </aside>
 
-    <!-- 2. 右側主要內容區塊 (Main Content) -->
-    <main class="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full">
-        <!-- 頂部標題與時間 -->
-        <header class="mb-6">
-            <h2 class="text-2xl font-bold flex items-center gap-2">
-                <span>📊</span> 主動式 ETF 持股籌碼追蹤
-            </h2>
-            <p class="text-sm text-gray-500 mt-2">資料更新時間：2026-08-12 16:30 (範例資料)</p>
+    <!-- 2. 右側主要看板 -->
+    <main>
+        <header>
+            <h2><span>📊</span> 主動式 ETF 持股籌碼追蹤</h2>
+            <div class="update-time">資料更新時間：2026-08-12 16:30 (範例資料)</div>
         </header>
 
-        <!-- 警示/提示文字區塊 -->
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-sm text-amber-800 flex items-start gap-2">
+        <div class="alert-box">
             <span>⚠️</span>
             <p>目前網頁內為測試範例資料。未來你可以串接後端 Python 爬蟲，將數據自動寫入此表格內。</p>
         </div>
 
-        <!-- 區塊標題：個股買賣超排行 -->
-        <section class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="card">
+            <div class="card-header">
                 <div>
-                    <h3 class="font-bold text-lg text-gray-900">當日主動 ETF 個股買賣超排行</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">點擊股名可反查持有它的 ETF 項目</p>
+                    <div class="card-title">當日主動 ETF 個股買賣超排行</div>
+                    <div class="card-subtitle">點擊股名可反查持有它的 ETF 項目</div>
                 </div>
-                
-                <!-- 篩選切換按鈕組 (三大合計 / 外資 / 投信) -->
-                <div class="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50 text-xs font-medium">
-                    <button class="px-3 py-1.5 bg-white text-gray-800 rounded-md shadow-sm">三大合計</button>
-                    <button class="px-3 py-1.5 text-gray-500 hover:text-gray-700">外資</button>
-                    <button class="px-3 py-1.5 text-gray-500 hover:text-gray-700">投信</button>
+                <!-- 切換按鈕 -->
+                <div class="btn-group">
+                    <button class="active">三大合計</button>
+                    <button>外資</button>
+                    <button>投信</button>
                 </div>
             </div>
 
-            <!-- 數據表格 (與目標網站相同欄位) -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-400 font-medium">
-                            <th class="py-3 px-5">股票代號/名稱</th>
-                            <th class="py-3 px-5 text-right">持股淨買賣 (估值)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 font-medium">
-                        <!-- 測試資料列 1 -->
-                        <tr class="hover:bg-gray-50 transition cursor-pointer">
-                            <td class="py-4 px-5 text-blue-600 hover:underline">4958 臻鼎-KY</td>
-                            <td class="py-4 px-5 text-right text-emerald-600">+9.4 億</td>
-                        </tr>
-                        <!-- 測試資料列 2 -->
-                        <tr class="hover:bg-gray-50 transition cursor-pointer">
-                            <td class="py-4 px-5 text-blue-600 hover:underline">2330 台積電</td>
-                            <td class="py-4 px-5 text-right text-rose-600">-2.9 億</td>
-                        </tr>
-                        <!-- 測試資料列 3 -->
-                        <tr class="hover:bg-gray-50 transition cursor-pointer">
-                            <td class="py-4 px-5 text-blue-600 hover:underline">2408 南亞科</td>
-                            <td class="py-4 px-5 text-right text-emerald-600">+4.2 億</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <!-- 資料表格 -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>股票代號/名稱</th>
+                        <th class="text-right">持股淨買賣 (估值)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="#" class="stock-name">4958 臻鼎-KY</a></td>
+                        <td class="text-right text-green">+9.4 億</td>
+                    </tr>
+                    <tr>
+                        <td><a href="#" class="stock-name">2330 台積電</a></td>
+                        <td class="text-right text-red">-2.9 億</td>
+                    </tr>
+                    <tr>
+                        <td><a href="#" class="stock-name">2408 南亞科</a></td>
+                        <td class="text-right text-green">+4.2 億</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </main>
 
 </body>
